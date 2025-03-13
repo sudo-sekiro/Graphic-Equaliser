@@ -57,12 +57,7 @@ public:
     void setStateInformation (const void* data, int sizeInBytes) override;
 
 private:
-    juce::IIRFilter* filter;
     juce::IIRCoefficients* coeffs;
-
-    juce::AudioParameterFloat* gainParameter;
-    juce::AudioParameterFloat* frequencyParameter;
-    juce::AudioParameterFloat* qParameter;
 
     juce::AudioParameterFloat* low_gainParameter;
     juce::AudioParameterFloat* low_frequencyParameter;
@@ -80,15 +75,23 @@ private:
     juce::dsp::ProcessorChain<juce::dsp::Gain<float>, Filter, Filter, Filter> chain;
 
     enum {
-        gainIndex,
-        highPassIndex,
-        midbandIndex,
-        lowPassIndex
+      gainIndex,
+      lowCutIndex,
+      midbandIndex,
+      highCutIndex
     };
 
-    float gain;
-    float frequency;
-    float q;
+    float low_gain;
+    float low_frequency;
+    float low_q;
+
+    float mid_gain;
+    float mid_frequency;
+    float mid_q;
+
+    float high_gain;
+    float high_frequency;
+    float high_q;
 
     std::vector<juce::IIRFilter> filters;
     // juce::dsp::ProcessorChain<juce::dsp::gain<float>, juce::IIRFilter> chain;
