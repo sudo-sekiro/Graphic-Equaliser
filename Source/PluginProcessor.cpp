@@ -177,9 +177,9 @@ void GraphicEqualiserAudioProcessor::processBlock (juce::AudioBuffer<float>& buf
     high_frequency = high_frequencyParameter->get();
     high_q = high_qParameter->get();
 
-    chain.get<lowCutIndex>().coefficients = juce::dsp::IIR::Coefficients<float>::makeLowShelf(sampleRate, low_frequency, low_q, low_gain);
-    chain.get<midbandIndex>().coefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(sampleRate, mid_frequency, mid_q, mid_gain);
-    chain.get<highCutIndex>().coefficients = juce::dsp::IIR::Coefficients<float>::makeHighShelf(sampleRate, high_frequency, high_q, high_gain);
+    *chain.get<lowCutIndex>().state = *juce::dsp::IIR::Coefficients<float>::makeLowShelf(sampleRate, low_frequency, low_q, low_gain);
+    *chain.get<midbandIndex>().state = *juce::dsp::IIR::Coefficients<float>::makePeakFilter(sampleRate, mid_frequency, mid_q, mid_gain);
+    *chain.get<highCutIndex>().state = *juce::dsp::IIR::Coefficients<float>::makeHighShelf(sampleRate, high_frequency, high_q, high_gain);
 
     juce::dsp::AudioBlock<float> block(buffer);
     auto context = juce::dsp::ProcessContextReplacing<float>(block);
@@ -188,13 +188,6 @@ void GraphicEqualiserAudioProcessor::processBlock (juce::AudioBuffer<float>& buf
 
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
-
-    // for (int channel = 0; channel < totalNumInputChannels; ++channel)
-    // {
-    //     auto* channelData = buffer.getWritePointer (channel);
-
-    //     filters[channel].processSamples (channelData, buffer.getNumSamples());
-    // }
 }
 
 //==============================================================================

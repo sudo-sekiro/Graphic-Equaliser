@@ -57,8 +57,6 @@ public:
     void setStateInformation (const void* data, int sizeInBytes) override;
 
 private:
-    juce::IIRCoefficients* coeffs;
-
     juce::AudioParameterFloat* low_gainParameter;
     juce::AudioParameterFloat* low_frequencyParameter;
     juce::AudioParameterFloat* low_qParameter;
@@ -72,7 +70,10 @@ private:
     juce::AudioParameterFloat* high_qParameter;
 
     using Filter = juce::dsp::IIR::Filter<float>;
-    juce::dsp::ProcessorChain<juce::dsp::Gain<float>, Filter, Filter, Filter> chain;
+
+    using Stereo = dsp::ProcessorDuplicator<Filter, juce::dsp::IIR::Coefficients<float>>;
+
+    juce::dsp::ProcessorChain<juce::dsp::Gain<float>, Stereo, Stereo, Stereo> chain;
 
     enum {
       gainIndex,
