@@ -96,19 +96,17 @@ void GraphicEqualiserAudioProcessor::changeProgramName (int index, const juce::S
 //==============================================================================
 void GraphicEqualiserAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
-    // Use this method as the place to do any pre-playback
-    // initialisation that you need..
     juce::dsp::ProcessSpec spec;
     spec.maximumBlockSize = samplesPerBlock;
     spec.sampleRate = sampleRate;
 
-    chain.get<gainIndex>().setGainLinear(1.0f);
     chain.prepare(spec);
-
-    // for (int i = 0; i < getTotalNumInputChannels(); i++)
-    // {
-    //     filters.push_back(juce::IIRFilter());
-    // }
+    /* Base code for preparing filters without processor chain
+     *
+      lowCutFilter.prepare(spec);
+      highCutFilter.prepare(spec);
+      midFilter.prepare(spec);
+    */
 }
 
 void GraphicEqualiserAudioProcessor::releaseResources()
@@ -145,21 +143,19 @@ bool GraphicEqualiserAudioProcessor::isBusesLayoutSupported (const BusesLayout& 
 
 void GraphicEqualiserAudioProcessor::updateParameters(float sampleRate) {
     low_gain = pow(10, low_gainParameter->get() / 20);
-    // low_frequency = low_frequencyParameter->get();
-    // low_q = low_qParameter->get();
-
     mid_gain = pow(10, mid_gainParameter->get() / 20);
-    // mid_frequency = mid_frequencyParameter->get();
-    // mid_q = mid_qParameter->get();
-
     high_gain = pow(10, high_gainParameter->get() / 20);
-    // high_frequency = high_frequencyParameter->get();
-    // high_q = high_qParameter->get();
 
     *chain.get<lowCutIndex>().state = *juce::dsp::IIR::Coefficients<float>::makeLowShelf(sampleRate, low_frequency, low_q, low_gain);
     *chain.get<midbandIndex>().state = *juce::dsp::IIR::Coefficients<float>::makePeakFilter(sampleRate, mid_frequency, mid_q, mid_gain);
     *chain.get<highCutIndex>().state = *juce::dsp::IIR::Coefficients<float>::makeHighShelf(sampleRate, high_frequency, high_q, high_gain);
 
+    /* Base code for updating filter parameters
+     *
+    *lowCutFilter.state = *juce::dsp::IIR::Coefficients<float>::makeLowShelf(sampleRate, low_frequency, low_q, low_gain);
+    *highCutFilter.state = *juce::dsp::IIR::Coefficients<float>::makePeakFilter(sampleRate, mid_frequency, mid_q, mid_gain);
+    *midFilter.state = *juce::dsp::IIR::Coefficients<float>::makeHighShelf(sampleRate, high_frequency, high_q, high_gain);
+    */
 }
 
 void GraphicEqualiserAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
@@ -168,13 +164,25 @@ void GraphicEqualiserAudioProcessor::processBlock (juce::AudioBuffer<float>& buf
     auto totalNumInputChannels  = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
 
+    // Update user parameters
     auto sampleRate = getSampleRate();
     updateParameters(sampleRate);
+
+    // Create context to update buffer
     juce::dsp::AudioBlock<float> block(buffer);
     auto context = juce::dsp::ProcessContextReplacing<float>(block);
 
     chain.process(context);
 
+    // Process filters in series
+    /* Base code for processing filters without processor chain
+     *
+    lowCutFilter.process(context);
+    midFilter.process(context);
+    highCutFilter.process(context);
+    */
+
+    // Clear any remaining output channels
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
 }

@@ -68,10 +68,16 @@ private:
 
     using Stereo = dsp::ProcessorDuplicator<Filter, juce::dsp::IIR::Coefficients<float>>;
 
-    juce::dsp::ProcessorChain<juce::dsp::Gain<float>, Stereo, Stereo, Stereo> chain;
+    /* Base code for defining filters without processor chain
+     *
+    Stereo lowCutFilter;
+    Stereo highCutFilter;
+    Stereo midFilter;
+    */
+
+    juce::dsp::ProcessorChain<Stereo, Stereo, Stereo> chain;
 
     enum {
-      gainIndex,
       lowCutIndex,
       midbandIndex,
       highCutIndex
@@ -88,8 +94,6 @@ private:
     float high_gain;
     float high_frequency = 5000;
     float high_q = 1.f;
-
-    std::vector<juce::IIRFilter> filters;
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (GraphicEqualiserAudioProcessor)
 };
