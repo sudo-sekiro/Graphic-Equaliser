@@ -23,7 +23,7 @@ GraphicEqualiserAudioProcessor::GraphicEqualiserAudioProcessor()
 #endif
 {
     addParameter(low_gainParameter = new juce::AudioParameterFloat("lowgain", "Low Gain", juce::NormalisableRange<float>(-20.f, 20.f, 0.1f), 1.f));
-    addParameter(mid_gainParameter = new juce::AudioParameterFloat("midgain", "Mid Gain", juce::NormalisableRange<float>(-20.f, 20.f, 0.1f), 0.f));
+    addParameter(mid_gainParameter = new juce::AudioParameterFloat("midgain", "Mid Gain", juce::NormalisableRange<float>(-20.f, 20.f, 0.1f), 1.f));
     addParameter(high_gainParameter = new juce::AudioParameterFloat("highgain", "High Gain", juce::NormalisableRange<float>(-20.f, 20.f, 0.1f), 1.f));
 }
 
@@ -100,13 +100,26 @@ void GraphicEqualiserAudioProcessor::prepareToPlay (double sampleRate, int sampl
     spec.maximumBlockSize = samplesPerBlock;
     spec.sampleRate = sampleRate;
 
-    chain.prepare(spec);
+    lowBandBuffer.setSize(2, samplesPerBlock);
+    highBandBuffer.setSize(2, samplesPerBlock);
+    midBandBuffer.setSize(2, samplesPerBlock);
+
+    lowBandChain.prepare(spec);
+    midBandChain.prepare(spec);
+    highBandChain.prepare(spec);
+
+    // chain.prepare(spec);
     /* Base code for preparing filters without processor chain
      *
       lowCutFilter.prepare(spec);
       highCutFilter.prepare(spec);
       midFilter.prepare(spec);
     */
+    *lowBandChain.get<1>().coefficients = *juce::dsp::IIR::Coefficients<float>::makeHighShelf(sampleRate, low_frequency, low_q, 0.1f); // cut everything above low frequency
+    *highBandChain.get<1>().coefficients = *juce::dsp::IIR::Coefficients<float>::makeLowShelf(sampleRate, high_frequency, high_q, 0.1f); // cut everything below high frequency
+    // cut everything except mid frequency
+    *midBandChain.get<1>().coefficients = *juce::dsp::IIR::Coefficients<float>::makeLowShelf(sampleRate, low_frequency, mid_q, 0.1f);
+    *midBandChain.get<2>().coefficients = *juce::dsp::IIR::Coefficients<float>::makeHighShelf(sampleRate, high_frequency, mid_q, 0.1f);
 }
 
 void GraphicEqualiserAudioProcessor::releaseResources()
@@ -146,9 +159,10 @@ void GraphicEqualiserAudioProcessor::updateParameters(float sampleRate) {
     mid_gain = pow(10, mid_gainParameter->get() / 20);
     high_gain = pow(10, high_gainParameter->get() / 20);
 
-    *chain.get<lowCutIndex>().state = *juce::dsp::IIR::Coefficients<float>::makeLowShelf(sampleRate, low_frequency, low_q, low_gain);
-    *chain.get<midbandIndex>().state = *juce::dsp::IIR::Coefficients<float>::makePeakFilter(sampleRate, mid_frequency, mid_q, mid_gain);
-    *chain.get<highCutIndex>().state = *juce::dsp::IIR::Coefficients<float>::makeHighShelf(sampleRate, high_frequency, high_q, high_gain);
+    lowBandChain.get<0>().setGainLinear(low_gain);
+    // lowBandChain.get<0>().setGainLinear(low_gain);
+    midBandChain.get<0>().setGainLinear(mid_gain);
+    highBandChain.get<0>().setGainLinear(high_gain);
 
     /* Base code for updating filter parameters
      *
@@ -168,12 +182,29 @@ void GraphicEqualiserAudioProcessor::processBlock (juce::AudioBuffer<float>& buf
     auto sampleRate = getSampleRate();
     updateParameters(sampleRate);
 
-    // Create context to update buffer
-    juce::dsp::AudioBlock<float> block(buffer);
-    auto context = juce::dsp::ProcessContextReplacing<float>(block);
+    // Process filters in parallel
+    lowBandBuffer.makeCopyOf(buffer);
+    midBandBuffer.makeCopyOf(buffer);
+    highBandBuffer.makeCopyOf(buffer);
+    juce::dsp::AudioBlock<float> lowBandBlock(lowBandBuffer);
+    auto lowBandContext = juce::dsp::ProcessContextReplacing<float>(lowBandBlock);
+    lowBandChain.process(lowBandContext);
 
-    chain.process(context);
+    juce::dsp::AudioBlock<float> midBandBlock(midBandBuffer);
+    auto midBandContext = juce::dsp::ProcessContextReplacing<float>(midBandBlock);
+    midBandChain.process(midBandContext);
 
+    juce::dsp::AudioBlock<float> highBandBlock(highBandBuffer);
+    auto highBandContext = juce::dsp::ProcessContextReplacing<float>(highBandBlock);
+    highBandChain.process(highBandContext);
+
+    buffer.clear();
+
+    for (int i = 0; i < buffer.getNumChannels(); i++) {
+        for (int j = 0; j < buffer.getNumSamples(); j++) {
+            buffer.setSample(i, j, lowBandBuffer.getSample(i, j) + midBandBuffer.getSample(i, j) + highBandBuffer.getSample(i, j));
+        }
+    }
     // Process filters in series
     /* Base code for processing filters without processor chain
      *

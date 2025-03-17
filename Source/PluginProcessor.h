@@ -75,13 +75,23 @@ private:
     Stereo midFilter;
     */
 
-    juce::dsp::ProcessorChain<Stereo, Stereo, Stereo> chain;
+    juce::AudioBuffer<float> lowBandBuffer;
+    juce::AudioBuffer<float> highBandBuffer;
+    juce::AudioBuffer<float> midBandBuffer;
 
-    enum {
-      lowCutIndex,
-      midbandIndex,
-      highCutIndex
-    };
+
+    juce::dsp::ProcessorChain<juce::dsp::Gain<float> , Filter> lowBandChain;
+    juce::dsp::ProcessorChain<juce::dsp::Gain<float> , Filter> highBandChain;
+    juce::dsp::ProcessorChain<juce::dsp::Gain<float> , Filter, Filter> midBandChain;
+
+
+    // juce::dsp::ProcessorChain<Stereo, Stereo, Stereo> chain;
+
+    // enum {
+    //   lowCutIndex,
+    //   midbandIndex,
+    //   highCutIndex
+    // };
 
     float low_gain;
     float low_frequency = 300.f;
