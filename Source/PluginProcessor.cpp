@@ -22,17 +22,9 @@ GraphicEqualiserAudioProcessor::GraphicEqualiserAudioProcessor()
                        )
 #endif
 {
-    addParameter(low_gainParameter = new juce::AudioParameterFloat("lowgain", "Low Gain", juce::NormalisableRange<float>(-20.f, 20.f, 0.1f), 0.f));
-    addParameter(low_frequencyParameter = new juce::AudioParameterFloat("lowfreq", "Low Frequency", juce::NormalisableRange<float>(20.f, 20000.f, 1.f), 100.f));
-    addParameter(low_qParameter = new juce::AudioParameterFloat("lowq", "Low Q", juce::NormalisableRange<float>(0.1f, 10.f, 0.1f), 1.f));
-
+    addParameter(low_gainParameter = new juce::AudioParameterFloat("lowgain", "Low Gain", juce::NormalisableRange<float>(-20.f, 20.f, 0.1f), 1.f));
     addParameter(mid_gainParameter = new juce::AudioParameterFloat("midgain", "Mid Gain", juce::NormalisableRange<float>(-20.f, 20.f, 0.1f), 0.f));
-    addParameter(mid_frequencyParameter = new juce::AudioParameterFloat("midfreq", "Mid Frequency", juce::NormalisableRange<float>(20.f, 20000.f, 1.f), 1000.f));
-    addParameter(mid_qParameter = new juce::AudioParameterFloat("midq", "Mid Q", juce::NormalisableRange<float>(0.1f, 10.f, 0.1f), 1.f));
-
-    addParameter(high_gainParameter = new juce::AudioParameterFloat("highgain", "High Gain", juce::NormalisableRange<float>(-20.f, 20.f, 0.1f), 0.f));
-    addParameter(high_frequencyParameter = new juce::AudioParameterFloat("highfreq", "High Frequency", juce::NormalisableRange<float>(20.f, 20000.f, 1.f), 10000.f));
-    addParameter(high_qParameter = new juce::AudioParameterFloat("highq", "High Q", juce::NormalisableRange<float>(0.1f, 10.f, 0.1f), 1.f));
+    addParameter(high_gainParameter = new juce::AudioParameterFloat("highgain", "High Gain", juce::NormalisableRange<float>(-20.f, 20.f, 0.1f), 1.f));
 }
 
 GraphicEqualiserAudioProcessor::~GraphicEqualiserAudioProcessor()
@@ -151,6 +143,25 @@ bool GraphicEqualiserAudioProcessor::isBusesLayoutSupported (const BusesLayout& 
 }
 #endif
 
+void GraphicEqualiserAudioProcessor::updateParameters(float sampleRate) {
+    low_gain = pow(10, low_gainParameter->get() / 20);
+    // low_frequency = low_frequencyParameter->get();
+    // low_q = low_qParameter->get();
+
+    mid_gain = pow(10, mid_gainParameter->get() / 20);
+    // mid_frequency = mid_frequencyParameter->get();
+    // mid_q = mid_qParameter->get();
+
+    high_gain = pow(10, high_gainParameter->get() / 20);
+    // high_frequency = high_frequencyParameter->get();
+    // high_q = high_qParameter->get();
+
+    *chain.get<lowCutIndex>().state = *juce::dsp::IIR::Coefficients<float>::makeLowShelf(sampleRate, low_frequency, low_q, low_gain);
+    *chain.get<midbandIndex>().state = *juce::dsp::IIR::Coefficients<float>::makePeakFilter(sampleRate, mid_frequency, mid_q, mid_gain);
+    *chain.get<highCutIndex>().state = *juce::dsp::IIR::Coefficients<float>::makeHighShelf(sampleRate, high_frequency, high_q, high_gain);
+
+}
+
 void GraphicEqualiserAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
     juce::ScopedNoDenormals noDenormals;
@@ -158,29 +169,7 @@ void GraphicEqualiserAudioProcessor::processBlock (juce::AudioBuffer<float>& buf
     auto totalNumOutputChannels = getTotalNumOutputChannels();
 
     auto sampleRate = getSampleRate();
-
-    // Get user parameters
-    // gain = gainParameter->get();
-    // // gain = pow(10, gain / 20);
-    // frequency = frequencyParameter->get();
-    // q = qParameter->get();
-
-    low_gain = pow(10, low_gainParameter->get() / 20);
-    low_frequency = low_frequencyParameter->get();
-    low_q = low_qParameter->get();
-
-    mid_gain = pow(10, mid_gainParameter->get() / 20);
-    mid_frequency = mid_frequencyParameter->get();
-    mid_q = mid_qParameter->get();
-
-    high_gain = pow(10, high_gainParameter->get() / 20);
-    high_frequency = high_frequencyParameter->get();
-    high_q = high_qParameter->get();
-
-    *chain.get<lowCutIndex>().state = *juce::dsp::IIR::Coefficients<float>::makeLowShelf(sampleRate, low_frequency, low_q, low_gain);
-    *chain.get<midbandIndex>().state = *juce::dsp::IIR::Coefficients<float>::makePeakFilter(sampleRate, mid_frequency, mid_q, mid_gain);
-    *chain.get<highCutIndex>().state = *juce::dsp::IIR::Coefficients<float>::makeHighShelf(sampleRate, high_frequency, high_q, high_gain);
-
+    updateParameters(sampleRate);
     juce::dsp::AudioBlock<float> block(buffer);
     auto context = juce::dsp::ProcessContextReplacing<float>(block);
 

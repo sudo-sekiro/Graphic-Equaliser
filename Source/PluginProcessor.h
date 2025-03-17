@@ -56,18 +56,13 @@ public:
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
 
+    //==============================================================================
+    void updateParameters(float sampleRate);
+
 private:
     juce::AudioParameterFloat* low_gainParameter;
-    juce::AudioParameterFloat* low_frequencyParameter;
-    juce::AudioParameterFloat* low_qParameter;
-
     juce::AudioParameterFloat* mid_gainParameter;
-    juce::AudioParameterFloat* mid_frequencyParameter;
-    juce::AudioParameterFloat* mid_qParameter;
-
     juce::AudioParameterFloat* high_gainParameter;
-    juce::AudioParameterFloat* high_frequencyParameter;
-    juce::AudioParameterFloat* high_qParameter;
 
     using Filter = juce::dsp::IIR::Filter<float>;
 
@@ -83,19 +78,18 @@ private:
     };
 
     float low_gain;
-    float low_frequency;
-    float low_q;
+    float low_frequency = 300.f;
+    float low_q = 1.f ;
 
     float mid_gain;
-    float mid_frequency;
-    float mid_q;
+    float mid_frequency = 3000;
+    float mid_q = 0.5f;
 
     float high_gain;
-    float high_frequency;
-    float high_q;
+    float high_frequency = 5000;
+    float high_q = 1.f;
 
     std::vector<juce::IIRFilter> filters;
-    // juce::dsp::ProcessorChain<juce::dsp::gain<float>, juce::IIRFilter> chain;
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (GraphicEqualiserAudioProcessor)
 };
