@@ -22,9 +22,9 @@ GraphicEqualiserAudioProcessor::GraphicEqualiserAudioProcessor()
                        )
 #endif
 {
-    addParameter(low_gainParameter = new juce::AudioParameterFloat("lowgain", "Low Gain", juce::NormalisableRange<float>(-20.f, 20.f, 0.1f), 1.f));
-    addParameter(mid_gainParameter = new juce::AudioParameterFloat("midgain", "Mid Gain", juce::NormalisableRange<float>(-20.f, 20.f, 0.1f), 0.f));
-    addParameter(high_gainParameter = new juce::AudioParameterFloat("highgain", "High Gain", juce::NormalisableRange<float>(-20.f, 20.f, 0.1f), 1.f));
+    // addParameter(low_gainParameter = new juce::AudioParameterFloat("lowgain", "Low Gain", juce::NormalisableRange<float>(-20.f, 20.f, 0.1f), 1.f));
+    // addParameter(mid_gainParameter = new juce::AudioParameterFloat("midgain", "Mid Gain", juce::NormalisableRange<float>(-20.f, 20.f, 0.1f), 1.f));
+    // addParameter(high_gainParameter = new juce::AudioParameterFloat("highgain", "High Gain", juce::NormalisableRange<float>(-20.f, 20.f, 0.1f), 1.f));
 }
 
 GraphicEqualiserAudioProcessor::~GraphicEqualiserAudioProcessor()
@@ -142,13 +142,20 @@ bool GraphicEqualiserAudioProcessor::isBusesLayoutSupported (const BusesLayout& 
 #endif
 
 void GraphicEqualiserAudioProcessor::updateParameters(float sampleRate) {
-    low_gain = pow(10, low_gainParameter->get() / 20);
-    mid_gain = pow(10, mid_gainParameter->get() / 20);
-    high_gain = pow(10, high_gainParameter->get() / 20);
+    // low_gain = pow(10, low_gainParameter->get() / 20);
+    // mid_gain = pow(10, mid_gainParameter->get() / 20);
+    // high_gain = pow(10, high_gainParameter->get() / 20);
 
-    *chain.get<lowCutIndex>().state = *juce::dsp::IIR::Coefficients<float>::makeLowShelf(sampleRate, low_frequency, low_q, low_gain);
-    *chain.get<midbandIndex>().state = *juce::dsp::IIR::Coefficients<float>::makePeakFilter(sampleRate, mid_frequency, mid_q, mid_gain);
-    *chain.get<highCutIndex>().state = *juce::dsp::IIR::Coefficients<float>::makeHighShelf(sampleRate, high_frequency, high_q, high_gain);
+    auto low_gain_linear = pow(10, low_gain / 20);
+    auto mid_gain_linear = pow(10, mid_gain / 20);
+    auto high_gain_linear = pow(10, high_gain / 20);
+
+    *chain.get<lowCutIndex>().state = *juce::dsp::IIR::Coefficients<float>::makeLowShelf(sampleRate, low_frequency, low_q, low_gain_linear);
+    *chain.get<midbandIndex>().state = *juce::dsp::IIR::Coefficients<float>::makePeakFilter(sampleRate, mid_frequency, mid_q, mid_gain_linear);
+    *chain.get<highCutIndex>().state = *juce::dsp::IIR::Coefficients<float>::makeHighShelf(sampleRate, high_frequency, high_q, high_gain_linear);
+    // lowBandChain.get<0>().setGainLinear(pow(10,low_gain / 20));
+    // midBandChain.get<0>().setGainLinear(pow(10, mid_gain/ 20));
+    // highBandChain.get<0>().setGainLinear(pow(10, high_gain / 20));
 
     /* Base code for updating filter parameters
      *
@@ -196,7 +203,7 @@ bool GraphicEqualiserAudioProcessor::hasEditor() const
 juce::AudioProcessorEditor* GraphicEqualiserAudioProcessor::createEditor()
 {
     // return new GraphicEqualiserAudioProcessorEditor (*this);
-    return new GenericAudioProcessorEditor(*this);
+    return new GraphicEqualiserAudioProcessorEditor(*this);
 
 }
 

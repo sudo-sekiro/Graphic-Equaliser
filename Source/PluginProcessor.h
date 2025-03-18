@@ -59,11 +59,17 @@ public:
     //==============================================================================
     void updateParameters(float sampleRate);
 
-private:
-    juce::AudioParameterFloat* low_gainParameter;
-    juce::AudioParameterFloat* mid_gainParameter;
-    juce::AudioParameterFloat* high_gainParameter;
+    void setLowGain(float newLowGain) {
+      low_gain = newLowGain;
+    }
+    void setMidGain(float newMidGain) {
+      mid_gain = newMidGain;
+    }
+    void setHighGain(float newHighGain) {
+      high_gain = newHighGain;
+    }
 
+private:
     using Filter = juce::dsp::IIR::Filter<float>;
 
     using Stereo = dsp::ProcessorDuplicator<Filter, juce::dsp::IIR::Coefficients<float>>;
