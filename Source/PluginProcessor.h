@@ -72,7 +72,7 @@ public:
 private:
     using Filter = juce::dsp::IIR::Filter<float>;
 
-    using Stereo = dsp::ProcessorDuplicator<Filter, juce::dsp::IIR::Coefficients<float>>;
+    using Stereo = juce::dsp::ProcessorDuplicator<Filter, juce::dsp::IIR::Coefficients<float>>;
 
     /* Base code for defining filters without processor chain
      *
