@@ -99,6 +99,7 @@ void GraphicEqualiserAudioProcessor::prepareToPlay (double sampleRate, int sampl
     juce::dsp::ProcessSpec spec;
     spec.maximumBlockSize = samplesPerBlock;
     spec.sampleRate = sampleRate;
+    spec.numChannels = getNumInputChannels();
 
     lowBandBuffer.setSize(2, samplesPerBlock);
     highBandBuffer.setSize(2, samplesPerBlock);
