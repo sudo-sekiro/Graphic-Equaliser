@@ -99,6 +99,7 @@ void GraphicEqualiserAudioProcessor::prepareToPlay (double sampleRate, int sampl
     juce::dsp::ProcessSpec spec;
     spec.maximumBlockSize = samplesPerBlock;
     spec.sampleRate = sampleRate;
+    spec.numChannels = getNumInputChannels();
 
     chain.prepare(spec);
     /* Base code for preparing filters without processor chain
