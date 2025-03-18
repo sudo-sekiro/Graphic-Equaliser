@@ -85,9 +85,9 @@ private:
     juce::AudioBuffer<float> highBandBuffer;
     juce::AudioBuffer<float> midBandBuffer;
 
-    juce::dsp::ProcessorChain<juce::dsp::Gain<float> , Filter> lowBandChain;
-    juce::dsp::ProcessorChain<juce::dsp::Gain<float> , Filter> highBandChain;
-    juce::dsp::ProcessorChain<juce::dsp::Gain<float> , Filter, Filter> midBandChain;
+    juce::dsp::ProcessorChain<juce::dsp::Gain<float>, Stereo> lowBandChain;
+    juce::dsp::ProcessorChain<juce::dsp::Gain<float>, Stereo> highBandChain;
+    juce::dsp::ProcessorChain<juce::dsp::Gain<float>, Stereo, Stereo> midBandChain;
 
     float low_gain;
     float low_frequency = 300.f;
