@@ -115,11 +115,11 @@ void GraphicEqualiserAudioProcessor::prepareToPlay (double sampleRate, int sampl
       highCutFilter.prepare(spec);
       midFilter.prepare(spec);
     */
-    *lowBandChain.get<1>().coefficients = *juce::dsp::IIR::Coefficients<float>::makeHighShelf(sampleRate, low_frequency, low_q, 0.1f); // cut everything above low frequency
-    *highBandChain.get<1>().coefficients = *juce::dsp::IIR::Coefficients<float>::makeLowShelf(sampleRate, high_frequency, high_q, 0.1f); // cut everything below high frequency
+    *lowBandChain.get<1>().coefficients = *juce::dsp::IIR::Coefficients<float>::makeLowPass(sampleRate, low_frequency + 100); // cut everything above low frequency
+    *highBandChain.get<1>().coefficients = *juce::dsp::IIR::Coefficients<float>::makeHighPass(sampleRate, high_frequency + 2000); // cut everything below high frequency
     // cut everything except mid frequency
-    *midBandChain.get<1>().coefficients = *juce::dsp::IIR::Coefficients<float>::makeLowShelf(sampleRate, low_frequency, mid_q, 0.1f);
-    *midBandChain.get<2>().coefficients = *juce::dsp::IIR::Coefficients<float>::makeHighShelf(sampleRate, high_frequency, mid_q, 0.1f);
+    *midBandChain.get<1>().coefficients = *juce::dsp::IIR::Coefficients<float>::makeHighPass(sampleRate, low_frequency - 100);
+    *midBandChain.get<2>().coefficients = *juce::dsp::IIR::Coefficients<float>::makeLowPass(sampleRate, high_frequency - 2000);
 }
 
 void GraphicEqualiserAudioProcessor::releaseResources()
