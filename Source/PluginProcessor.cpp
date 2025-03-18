@@ -22,9 +22,9 @@ GraphicEqualiserAudioProcessor::GraphicEqualiserAudioProcessor()
                        )
 #endif
 {
-    addParameter(low_gainParameter = new juce::AudioParameterFloat("lowgain", "Low Gain", juce::NormalisableRange<float>(-20.f, 20.f, 0.1f), 1.f));
-    addParameter(mid_gainParameter = new juce::AudioParameterFloat("midgain", "Mid Gain", juce::NormalisableRange<float>(-20.f, 20.f, 0.1f), 1.f));
-    addParameter(high_gainParameter = new juce::AudioParameterFloat("highgain", "High Gain", juce::NormalisableRange<float>(-20.f, 20.f, 0.1f), 1.f));
+    // addParameter(low_gainParameter = new juce::AudioParameterFloat("lowgain", "Low Gain", juce::NormalisableRange<float>(-20.f, 20.f, 0.1f), 1.f));
+    // addParameter(mid_gainParameter = new juce::AudioParameterFloat("midgain", "Mid Gain", juce::NormalisableRange<float>(-20.f, 20.f, 0.1f), 1.f));
+    // addParameter(high_gainParameter = new juce::AudioParameterFloat("highgain", "High Gain", juce::NormalisableRange<float>(-20.f, 20.f, 0.1f), 1.f));
 }
 
 GraphicEqualiserAudioProcessor::~GraphicEqualiserAudioProcessor()
@@ -155,14 +155,9 @@ bool GraphicEqualiserAudioProcessor::isBusesLayoutSupported (const BusesLayout& 
 #endif
 
 void GraphicEqualiserAudioProcessor::updateParameters(float sampleRate) {
-    low_gain = pow(10, low_gainParameter->get() / 20);
-    mid_gain = pow(10, mid_gainParameter->get() / 20);
-    high_gain = pow(10, high_gainParameter->get() / 20);
-
-    lowBandChain.get<0>().setGainLinear(low_gain);
-    // lowBandChain.get<0>().setGainLinear(low_gain);
-    midBandChain.get<0>().setGainLinear(mid_gain);
-    highBandChain.get<0>().setGainLinear(high_gain);
+    lowBandChain.get<0>().setGainLinear(pow(10,low_gain / 20));
+    midBandChain.get<0>().setGainLinear(pow(10, mid_gain/ 20));
+    highBandChain.get<0>().setGainLinear(pow(10, high_gain / 20));
 
     /* Base code for updating filter parameters
      *
@@ -227,7 +222,7 @@ bool GraphicEqualiserAudioProcessor::hasEditor() const
 juce::AudioProcessorEditor* GraphicEqualiserAudioProcessor::createEditor()
 {
     // return new GraphicEqualiserAudioProcessorEditor (*this);
-    return new GenericAudioProcessorEditor(*this);
+    return new GraphicEqualiserAudioProcessorEditor(*this);
 
 }
 

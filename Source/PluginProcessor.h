@@ -59,11 +59,17 @@ public:
     //==============================================================================
     void updateParameters(float sampleRate);
 
-private:
-    juce::AudioParameterFloat* low_gainParameter;
-    juce::AudioParameterFloat* mid_gainParameter;
-    juce::AudioParameterFloat* high_gainParameter;
+    void setLowGain(float newLowGain) {
+      low_gain = newLowGain;
+    }
+    void setMidGain(float newMidGain) {
+      mid_gain = newMidGain;
+    }
+    void setHighGain(float newHighGain) {
+      high_gain = newHighGain;
+    }
 
+private:
     using Filter = juce::dsp::IIR::Filter<float>;
 
     using Stereo = dsp::ProcessorDuplicator<Filter, juce::dsp::IIR::Coefficients<float>>;
@@ -79,19 +85,9 @@ private:
     juce::AudioBuffer<float> highBandBuffer;
     juce::AudioBuffer<float> midBandBuffer;
 
-
     juce::dsp::ProcessorChain<juce::dsp::Gain<float> , Filter> lowBandChain;
     juce::dsp::ProcessorChain<juce::dsp::Gain<float> , Filter> highBandChain;
     juce::dsp::ProcessorChain<juce::dsp::Gain<float> , Filter, Filter> midBandChain;
-
-
-    // juce::dsp::ProcessorChain<Stereo, Stereo, Stereo> chain;
-
-    // enum {
-    //   lowCutIndex,
-    //   midbandIndex,
-    //   highCutIndex
-    // };
 
     float low_gain;
     float low_frequency = 300.f;
